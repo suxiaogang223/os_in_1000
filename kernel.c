@@ -2,10 +2,6 @@
 
 #include "common.h"
 
-typedef unsigned char uint8_t;
-typedef unsigned int uint32_t;
-typedef uint32_t size_t;
-
 // these symbols will be related to the linker script
 extern char __bss[], __bss_end[], __stack_top[];
 
@@ -30,14 +26,6 @@ struct sbiret sbi_call(long arg0, long arg1, long arg2, long arg3, long arg4,
 
 // eid = 1 means 'Console Putchar'
 void putchar(char ch) { sbi_call(ch, 0, 0, 0, 0, 0, 0, 1); }
-
-void* memset(void* buf, char c, size_t n) {
-    uint8_t* p = (uint8_t*)buf;
-    while (n--) {
-        *p++ = c;
-    }
-    return buf;
-}
 
 void kernel_main(void) {
     memset(__bss, 0, (size_t)__bss_end - (size_t)__bss);
