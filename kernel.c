@@ -33,9 +33,7 @@ void kernel_main(void) {
     printf("test printf:\n");
     printf("1 + 2 = %d, %x\n", 1 + 2, 0x1234abcd);
 
-    for (;;) {
-        __asm__ __volatile__("wfi");
-    }
+    PANIC("This is a panic test :%s", "hello");
 }
 
 __attribute__((section(".text.boot"))) __attribute__((naked)) void boot(void) {
