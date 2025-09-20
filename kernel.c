@@ -28,6 +28,7 @@ struct sbiret sbi_call(long arg0, long arg1, long arg2, long arg3, long arg4,
 void putchar(char ch) { sbi_call(ch, 0, 0, 0, 0, 0, 0, 1); }
 
 void handle_trap(struct trap_frame* f) {
+    (void)f;
     // scause: the type of trap
     uint32_t scause = READ_CSR(scause);
     // stval: external information about the trap (eg. faulting address)
@@ -135,12 +136,27 @@ __attribute__((section(".text.boot"))) __attribute__((naked)) void boot(void) {
     );
 }
 
+extern char __free_ram[], __free_ram_end[];
+
+paddr_t alloc_pages(uint32_t n) {
+    static paddr_t next_paddr = (paddr_t)__free_ram;
+    paddr_t paddr = next_paddr;
+    next_paddr += n * PAGE_SIZE;
+
+    if (next_paddr > (paddr_t)__free_ram_end) {
+        PANIC("out of memory");
+    }
+
+    memset((void*)paddr, 0, n * PAGE_SIZE);
+    return paddr;
+}
+
 void kernel_main(void) {
     memset(__bss, 0, (size_t)__bss_end - (size_t)__bss);
-    printf("kernel_main is running\n");
 
-    // set the trap handler for supervisor mode
-    // stvec: supervisor trap vector
-    WRITE_CSR(stvec, (uint32_t)kernel_entry);
-    __asm__ __volatile__("unimp");  // enable SIE
+    paddr_t paddr0 = alloc_pages(2);
+    paddr_t paddr1 = alloc_pages(1);
+
+    printf("alloc_pages: paddr0=%x, paddr1=%x\n", paddr0, paddr1);
+    PANIC("booted!");
 }
